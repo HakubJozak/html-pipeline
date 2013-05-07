@@ -3,9 +3,6 @@ module HTML
     # HTML filter that adds a 'name' attribute to all headers
     # in a document, so they can be accessed from a table of contents
     #
-    # TODO: besides adding the name attribute, we should get around to
-    # eventually generating the Table of Contents itself, with links
-    # to each header
     class TableOfContentsFilter < Filter
       def call
         headers = Hash.new(0)
@@ -25,22 +22,22 @@ module HTML
             reference = "#{name}#{uniq}"
             header_content.add_previous_sibling(%Q{<a name="#{reference}" class="anchor" href="##{reference}"><span class="mini-icon mini-icon-link"></span></a>})
 
-            # h3 => 3
-            level = node.name[-1].to_i
-            topics << [ header_content, reference ] if level == 1
+            # list only H1 in the TOCs
+            if (level = node.name[-1].to_i) == 1
+              topics << [ header_content, reference ]
+            end
           end
         end
 
-        unless topics.empty?
+        unless topics.empty? or doc.css("#table-of-contents").empty?
           items = topics.map { |name,reference| %Q{<li><a href="##{reference}">#{name}</a></li>} }
-          toc = """
+
+          doc.css("#table-of-contents").first << """
             <h1>Table of Contents</h1>
             <ul>
               #{items.join("\n")}
             </ul>
-            </div>
            """
-          doc.children.first.add_previous_sibling(toc)
         end
 
         doc
