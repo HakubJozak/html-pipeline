@@ -9,6 +9,8 @@ module HTML
     class TableOfContentsFilter < Filter
       def call
         headers = Hash.new(0)
+        topics = []
+
         doc.css('h1, h2, h3, h4, h5, h6').each do |node|
           name = node.text.downcase
           name.gsub!(/[^\w\- ]/, '') # remove punctuation
@@ -17,10 +19,30 @@ module HTML
 
           uniq = (headers[name] > 0) ? "-#{headers[name]}" : ''
           headers[name] += 1
+
+
           if header_content = node.children.first
-            header_content.add_previous_sibling(%Q{<a name="#{name}#{uniq}" class="anchor" href="##{name}#{uniq}"><span class="mini-icon mini-icon-link"></span></a>})
+            reference = "#{name}#{uniq}"
+            header_content.add_previous_sibling(%Q{<a name="#{reference}" class="anchor" href="##{reference}"><span class="mini-icon mini-icon-link"></span></a>})
+
+            # h3 => 3
+            level = node.name[-1].to_i
+            topics << [ header_content, reference ] if level == 1
           end
         end
+
+        unless topics.empty?
+          items = topics.map { |name,reference| %Q{<li><a href="##{reference}">#{name}</a></li>} }
+          toc = """
+            <h1>Table of Contents</h1>
+            <ul>
+              #{items.join("\n")}
+            </ul>
+            </div>
+           """
+          doc.children.first.add_previous_sibling(toc)
+        end
+
         doc
       end
     end
