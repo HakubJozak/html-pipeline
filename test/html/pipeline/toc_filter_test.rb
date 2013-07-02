@@ -42,6 +42,21 @@ class HTML::Pipeline::TableOfContentsFilterTest < Test::Unit::TestCase
     doc = TocFilter.call(orig)
     assert_equal 6, doc.search('a').size
   end
+
+  def test_toc_is_injected
+    orig = %(<div id='table-of-contents'></div>
+             <h1>Lord of the Things</h1>
+               <div id='toc-h2-lord-of-the-things'></div>
+               <h2>Chapter 1</h2>
+               <h2>Chapter 2</h2>
+               <h2>Chapter 3</h2>
+             <h1>Harry Plotter</h1>
+               <h2>Chapter 1 - Quidditch</h2>
+               <h2>Chapter 2 - Ditch</h2>)
+
+    doc = TocFilter.call(orig)
+
+    assert_not_empty doc.css('#table-of-contents > ul')
+    assert_not_empty doc.css('#toc-h2-lord-of-the-things > ul')
+  end
 end
-
-
