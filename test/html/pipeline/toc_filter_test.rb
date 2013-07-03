@@ -44,8 +44,7 @@ class HTML::Pipeline::TableOfContentsFilterTest < Test::Unit::TestCase
   end
 
   def test_toc_is_injected
-    orig = %(<div id='table-of-contents'></div>
-             <h1>Lord of the Things</h1>
+    orig = %(<h1>Lord of the Things</h1>
                <div id='toc-h2-lord-of-the-things'></div>
                <h2>Chapter 1</h2>
                <h2>Chapter 2</h2>
@@ -55,14 +54,19 @@ class HTML::Pipeline::TableOfContentsFilterTest < Test::Unit::TestCase
                <h2>Chapter 2 - Ditch</h2>)
 
     context = {
-      toc_builder: Proc.new { |toc|
-
+      toc_builder: Proc.new { |topics|
+        if topics.level == 0
+          topics.parent_header.children.first.add_previous_sibling(topics.to_html)
+        elsif topics.level < 2
+          topics.parent_header.add_next_sibling(topics.to_html)
+        end
       }
     }
 
     doc = TocFilter.call(orig, context)
 
-    assert_not_empty doc.css('#table-of-contents > ul')
-    assert_not_empty doc.css('#toc-h2-lord-of-the-things > ul')
+    assert_not_empty doc.css('ul#table-of-contents:first-child')
+    assert_not_empty doc.css('ul#toc-h2-lord-of-the-things')
+    assert_not_empty doc.css('ul#toc-h2-harry-plotter')
   end
 end
