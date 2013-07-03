@@ -54,7 +54,13 @@ class HTML::Pipeline::TableOfContentsFilterTest < Test::Unit::TestCase
                <h2>Chapter 1 - Quidditch</h2>
                <h2>Chapter 2 - Ditch</h2>)
 
-    doc = TocFilter.call(orig)
+    context = {
+      toc_builder: Proc.new { |toc|
+
+      }
+    }
+
+    doc = TocFilter.call(orig, context)
 
     assert_not_empty doc.css('#table-of-contents > ul')
     assert_not_empty doc.css('#toc-h2-lord-of-the-things > ul')

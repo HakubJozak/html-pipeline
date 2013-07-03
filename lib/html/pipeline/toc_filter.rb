@@ -8,7 +8,7 @@ module HTML
     class TableOfContentsFilter < Filter
       def call
         headers = Hash.new(0)
-        topics = TOC.new(0, 'Table of Contents', 'table-of-contents')
+        topics = TOC.new
         stack = [ topics ]
 
         doc.css('h1, h2, h3, h4, h5, h6').each do |node|
@@ -20,17 +20,14 @@ module HTML
           uniq = (headers[name] > 0) ? "-#{headers[name]}" : ''
           headers[name] += 1
 
-
           if header_content = node.children.first
             reference = "#{name}#{uniq}"
             header_content.add_previous_sibling(%Q{<a name="#{reference}" class="anchor" href="##{reference}"><span class="mini-icon mini-icon-link"></span></a>})
 
             # list only H1 in the TOCs
-            level = node.name[-1].to_i
-            current_level =
-            toc = TOC.new(level, header_content, reference)
+            toc = TOC.new(node, reference)
 
-            while stack.last.level >= level do
+            while stack.last.level >= toc.level do
               stack.pop
             end
 
@@ -52,10 +49,20 @@ module HTML
     class TOC < Array
       attr_accessor :level, :title, :reference
 
-      def initialize(level, title, reference)
-        @level = level
-        @title = title
-        @reference = reference
+      # Table of Contents bound to a concrete HTML node
+      # (which is either parent header or document root)
+      #
+      def initialize(node = nil, reference = nil)
+        if node
+          raise 'Missing reference' unless reference
+          @level = node.name[-1].to_i
+          @title = node.children.first
+          @reference = reference
+        else
+          @level = 0
+          @title = 'Table of Contents'
+          @reference = 'table-of-contents'
+        end
       end
 
       def html_id
