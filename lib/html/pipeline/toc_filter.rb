@@ -6,6 +6,16 @@ module HTML
     # in a document, so they can be accessed from a table of contents
     #
     class TableOfContentsFilter < Filter
+
+      UL_BUILDER = Proc.new { |toc|
+        if toc.level == 0
+          puts 1
+          toc.parent_header.children.first.add_previous_sibling(toc.to_html)
+        elsif toc.level < 2
+          toc.parent_header.add_next_sibling(toc.to_html)
+        end
+      }
+
       def call
         headers = Hash.new(0)
         topics = TOC.new(doc)
@@ -56,7 +66,7 @@ module HTML
       def initialize(node, reference = nil)
         if reference
           @level = node.name[-1].to_i
-          @title = node.children.first
+          @title = node.children.last.to_s
           @reference = reference
         else
           # main table of contents containing all the H1
