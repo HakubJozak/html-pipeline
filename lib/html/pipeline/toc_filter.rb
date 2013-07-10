@@ -85,13 +85,13 @@ module HTML
       #   ...
       # </ul>
       #
-      def to_html
+      def to_html(klass = nil)
         list_items = self.map do |t|
           %Q{<li><a href="##{t.reference}">#{t.title}</a></li>}
         end
 
         """
-          <ul id='#{self.html_id}'>
+          <ul id='#{self.html_id}' class='#{klass}'>
             #{list_items.join("\n")}
           </ul>
         """
