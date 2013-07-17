@@ -1,5 +1,3 @@
-require 'pry'
-
 module HTML
   class Pipeline
     # HTML filter that adds a 'name' attribute to all headers
